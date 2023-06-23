@@ -58,7 +58,7 @@ module.exports.updateCurrentUser = (req, res) => {
           .status(httpConstants.HTTP_STATUS_NOT_FOUND)
           .send({ message: 'Пользователь с указанным _id не найден' });
       }
-      return res.status(201).send({ data: user });
+      return res.status(200).send(user);
     })
     .catch((err) => {
       handleError(err, res);
@@ -78,7 +78,7 @@ module.exports.updateCurrentUserAvatar = (req, res) => {
           .status(httpConstants.HTTP_STATUS_NOT_FOUND)
           .send({ message: 'Пользователь с указанным _id не найден' });
       }
-      return res.status(201).send({ data: user });
+      return res.status(200).send(user);
     })
     .catch((err) => {
       handleError(err, res);
