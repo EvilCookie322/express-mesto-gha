@@ -2,15 +2,10 @@ const httpConstants = require('http2').constants;
 const User = require('../models/user');
 
 const handleError = (err, res) => {
-  if (err.name === 'ValidationError') {
+  if (err.name === 'ValidationError' || err.name === 'CastError') {
     return res
       .status(httpConstants.HTTP_STATUS_BAD_REQUEST)
       .send({ message: 'Введены некорректные данные' });
-  }
-  if (err.name === 'CastError') {
-    return res
-      .status(404)
-      .send({ message: 'Пользователь с указанным _id не найден' });
   }
   return res
     .status(httpConstants.HTTP_STATUS_SERVER_ERROR)
@@ -18,22 +13,29 @@ const handleError = (err, res) => {
 };
 
 module.exports.getUsers = (req, res) => User.find({})
-  .then((users) => res.status(200).send({ data: users }))
+  .then((users) => res.status(200).send(users))
   .catch((err) => {
     handleError(err, res);
   });
 
 module.exports.getUserById = (req, res) => User.findById(req.params.userId)
-  .then((user) => res.status(200).send({ data: user }))
+  .then((user) => {
+    if (!user) {
+      return res
+        .status(httpConstants.HTTP_STATUS_NOT_FOUND)
+        .send({ message: 'Пользователь с указанным _id не найден' });
+    }
+    return res.status(200).send(user);
+  })
   .catch((err) => {
     handleError(err, res);
   });
 
 module.exports.createUser = (req, res) => {
   const { name, about, avatar } = req.body;
-  User.create({ name, about, avatar })
+  return User.create({ name, about, avatar })
     .then((user) => res.status(201).send({
-      id: user._id,
+      _id: user._id,
       name: user.name,
       about: user.about,
       avatar: user.avatar,
@@ -45,12 +47,19 @@ module.exports.createUser = (req, res) => {
 
 module.exports.updateCurrentUser = (req, res) => {
   const { name, about } = req.body;
-  User.findByIdAndUpdate(
+  return User.findByIdAndUpdate(
     req.user._id,
     { name, about },
     { new: true, runValidators: true },
   )
-    .then((user) => res.status(201).send({ data: user }))
+    .then((user) => {
+      if (!user) {
+        return res
+          .status(httpConstants.HTTP_STATUS_NOT_FOUND)
+          .send({ message: 'Пользователь с указанным _id не найден' });
+      }
+      return res.status(201).send({ data: user });
+    })
     .catch((err) => {
       handleError(err, res);
     });
@@ -64,7 +73,12 @@ module.exports.updateCurrentUserAvatar = (req, res) => {
     { new: true, runValidators: true },
   )
     .then((user) => {
-      res.status(201).send({ data: user });
+      if (!user) {
+        return res
+          .status(httpConstants.HTTP_STATUS_NOT_FOUND)
+          .send({ message: 'Пользователь с указанным _id не найден' });
+      }
+      return res.status(201).send({ data: user });
     })
     .catch((err) => {
       handleError(err, res);
