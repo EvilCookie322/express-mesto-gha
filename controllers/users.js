@@ -70,7 +70,10 @@ module.exports.login = (req, res, next) => {
         .then((isMatch) => {
           if (!isMatch) return next(new ForbiddenError('Не правильная почта или пароль'));
           const token = jwt.sign({ _id: user._id }, JWT_SECRET, { expiresIn: '7d' });
-          return res.status(200).send({
+          return res.cookie('jwt', token, {
+            httpOnly: true,
+            maxAge: 3600000 * 24 * 7,
+          }).status(200).send({
             token,
           });
         });
