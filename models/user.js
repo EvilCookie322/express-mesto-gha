@@ -2,7 +2,6 @@ const mongoose = require('mongoose');
 const isUrl = require('validator/lib/isURL');
 const isEmail = require('validator/lib/isEmail');
 
-
 const userSchema = new mongoose.Schema({
   name: {
     type: String,

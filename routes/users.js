@@ -15,7 +15,7 @@ router.post('/signin', celebrate({
   body: Joi.object().keys({
     email: Joi.string().required().email(),
     password: Joi.string().required(),
-  })
+  }),
 }), login);
 
 router.post('/signup', celebrate({
@@ -24,10 +24,10 @@ router.post('/signup', celebrate({
     about: Joi.string().min(2).max(30),
     avatar:
       Joi.string()
-      .regex(/^((ftp|http|https):\/\/)?([\w\.]+)\.?([a-z\.]{2,6}\.?)(\/[\S\.]*)*(\.[a-z]+)?(\/\S)?$/),
+        .regex(/^((ftp|http|https):\/\/)?([\w]+)\.?([a-z]{2,6}\.?)(\/[\S]*)*(\.[a-z]+)?(\/\S)?$/),
     email: Joi.string().required().email(),
     password: Joi.string().required(),
-  })
+  }),
 }), createUser);
 
 router.use(auth);
@@ -44,7 +44,7 @@ router.patch('/users/me', celebrate({
   body: Joi.object().keys({
     name: Joi.string().min(2).max(30),
     about: Joi.string().min(2).max(30),
-  })
+  }),
 }), updateCurrentUser);
 
 router.patch('/users/me/avatar', celebrate({
@@ -52,8 +52,8 @@ router.patch('/users/me/avatar', celebrate({
     avatar:
       Joi.string()
         .required()
-        .regex(/^((ftp|http|https):\/\/)?([\w\.]+)\.?([a-z\.]{2,6}\.?)(\/[\S\.]*)*(\.[a-z]+)?(\/\S)?$/),
-  })
+        .regex(/^((ftp|http|https):\/\/)?([\w]+)\.?([a-z]{2,6}\.?)(\/[\S]*)*(\.[a-z]+)?(\/\S)?$/),
+  }),
 }), updateCurrentUserAvatar);
 
 module.exports = router;
