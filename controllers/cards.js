@@ -1,46 +1,34 @@
-const httpConstants = require('http2').constants;
 const Card = require('../models/card');
+const AuthError = require('../custom_errors/AuthError');
+const NotFoundError = require('../custom_errors/NotFoundError');
 
-const handleError = (err, res) => {
-  if (err.name === 'ValidationError' || err.name === 'CastError') {
-    return res
-      .status(httpConstants.HTTP_STATUS_BAD_REQUEST)
-      .send({ message: 'Некорректные данные' });
-  }
-  return res
-    .status(httpConstants.HTTP_STATUS_SERVER_ERROR)
-    .send({ message: 'Произошла ошибка на стороне сервера' });
-};
-
-module.exports.getCards = (req, res) => Card.find({})
+module.exports.getCards = (req, res, next) => Card.find({})
   .then((cards) => res.status(200).send(cards))
-  .catch((err) => handleError(err, res));
+  .catch(next);
 
-module.exports.createCard = (req, res) => {
+module.exports.createCard = (req, res, next) => {
   const { name, link } = req.body;
   const owner = req.user._id;
 
   return Card.create({ name, link, owner })
     .then((newCard) => res.status(201).send(newCard))
-    .catch((err) => {
-      handleError(err, res);
-    });
+    .catch(next);
 };
 
-module.exports.deleteCardById = (req, res) => Card.findByIdAndRemove(req.params.cardId)
+module.exports.deleteCardById = (req, res, next) => Card.findById(req.params.cardId)
   .then((card) => {
     if (!card) {
-      return res
-        .status(httpConstants.HTTP_STATUS_NOT_FOUND)
-        .send({ message: 'Карточка не найдена' });
+      return next(new NotFoundError('Карточка не найдена'));
     }
-    return res.status(200).send({ message: 'Success' });
+    if (String(card.owner) !== req.user._id) {
+      return next(new AuthError('Вы не можете удалять чужие карточки'));
+    }
+    Card.findByIdAndRemove(req.params.cardId)
+      .then(() => res.status(200).send({ message: 'Success' }));
   })
-  .catch((err) => {
-    handleError(err, res);
-  });
+  .catch(next);
 
-module.exports.likeCard = (req, res) => Card.findByIdAndUpdate(
+module.exports.likeCard = (req, res, next) => Card.findByIdAndUpdate(
   req.params.cardId,
   {
     $addToSet: { likes: req.user._id },
@@ -49,17 +37,13 @@ module.exports.likeCard = (req, res) => Card.findByIdAndUpdate(
 )
   .then((card) => {
     if (!card) {
-      return res
-        .status(httpConstants.HTTP_STATUS_NOT_FOUND)
-        .send({ message: 'Карточка не найдена' });
+      return next(new NotFoundError('Карточка не найдена'));
     }
     return res.status(200).send(card);
   })
-  .catch((err) => {
-    handleError(err, res);
-  });
+  .catch(next);
 
-module.exports.dislikeCard = (req, res) => Card.findByIdAndUpdate(
+module.exports.dislikeCard = (req, res, next) => Card.findByIdAndUpdate(
   req.params.cardId,
   {
     $pull: { likes: req.user._id },
@@ -68,12 +52,8 @@ module.exports.dislikeCard = (req, res) => Card.findByIdAndUpdate(
 )
   .then((card) => {
     if (!card) {
-      return res
-        .status(httpConstants.HTTP_STATUS_NOT_FOUND)
-        .send({ message: 'Карточка не найдена' });
+      return next(new NotFoundError('Карточка не найдена'));
     }
     return res.status(200).send(card);
   })
-  .catch((err) => {
-    handleError(err, res);
-  });
+  .catch(next);
