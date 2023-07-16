@@ -9,11 +9,11 @@ const AuthorizationError = require('../custom_errors/AuthorizationError');
 const SALT_ROUNDS = 10;
 const JWT_SECRET = 'super-banana';
 
-const handleValidationError = (err, next) => {
+const handleValidationError = (err) => {
   if (err.name === 'ValidationError') {
-    return next(new ValidationError('Некорректные данные'));
+    return new ValidationError('Некорректные данные');
   }
-  return next(err);
+  return err;
 };
 
 module.exports.getUsers = (req, res, next) => User.find({})
@@ -47,9 +47,8 @@ module.exports.createUser = (req, res, next) => {
     })
       .then((newUser) => res.status(200).send({ newUser })))
     .catch((err) => {
-      handleValidationError(err, next);
       if (err.code === 11000 || err.name === 'MongoServerError') return next(new ConflictError('Пользователь уже существует'));
-      return next(err);
+      return next(handleValidationError(err));
     });
 };
 
@@ -101,8 +100,7 @@ module.exports.updateCurrentUser = (req, res, next) => {
       return res.status(200).send(user);
     })
     .catch((err) => {
-      handleValidationError(err, next);
-      return next(err);
+      next(handleValidationError(err));
     });
 };
 
@@ -120,7 +118,6 @@ module.exports.updateCurrentUserAvatar = (req, res, next) => {
       return res.status(200).send(user);
     })
     .catch((err) => {
-      handleValidationError(err, next);
-      return next(err);
+      next(handleValidationError(err));
     });
 };
