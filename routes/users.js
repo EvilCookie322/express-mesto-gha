@@ -24,7 +24,7 @@ router.post('/signup', celebrate({
     about: Joi.string().min(2).max(30),
     avatar:
       Joi.string()
-        .regex(/^((ftp|http|https):\/\/)?([\w]+)\.?([a-z]{2,6}\.?)(\/[\S]*)*(\.[a-z]+)?(\/\S)?$/),
+        .regex(/^((ftp|http|https):\/\/)?([\w\S]+)\.([a-z]{2,6}\.?)+(\/[\S]*)*(\.[a-z]+)?(\/\S)?$/),
     email: Joi.string().required().email(),
     password: Joi.string().required(),
   }),
@@ -52,7 +52,7 @@ router.patch('/users/me/avatar', celebrate({
     avatar:
       Joi.string()
         .required()
-        .regex(/^((ftp|http|https):\/\/)?([\w]+)\.?([a-z]{2,6}\.?)(\/[\S]*)*(\.[a-z]+)?(\/\S)?$/),
+        .regex(/^((ftp|http|https):\/\/)?([\w\S]+)\.([a-z]{2,6}\.?)+(\/[\S]*)*(\.[a-z]+)?(\/\S)?$/),
   }),
 }), updateCurrentUserAvatar);
 
