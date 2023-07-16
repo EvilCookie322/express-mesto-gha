@@ -13,6 +13,7 @@ const handleValidationError = (err, next) => {
   if (err.name === 'ValidationError') {
     return next(new ValidationError('Некорректные данные'));
   }
+  return next(err);
 };
 
 module.exports.getUsers = (req, res, next) => User.find({})
